@@ -11,7 +11,7 @@ pacman::p_load(GenomicRanges, VariantAnnotation, reshape2, dplyr, BSgenome, BSge
 
 ref_genome <- "BSgenome.Hsapiens.UCSC.hg19"
 projectId <- "3c7d37894d2fa48ddc91ab162e23d6e3eda476e0e7f7a4d35ba261871ebf046b"
-token <- "WrR6im6Xgf6aCHZw6GMPvGlKa4MyOUswHVnCTdfXYIgVGZbSbLzHnJPkDrjcKvs9UhFgOfihvF8aGs9nWkZ"
+token <- "..."
 args <- commandArgs(trailingOnly=TRUE)
 # sampleID <- "CPCT02050166T"
 sampleID <- args[1]
@@ -37,112 +37,112 @@ out_dir <- args[9]
 # 1. Loading variants from database ------------------------------------------------------------------------------------------------------------------
 # Connecting to and retrieving data from sparqling-genomics
 
-SGSPARQL <- function (projectId, token, query, verbose = T){
-  if (verbose){
-    message("Connecting to server ...")
-  }
-  accumulator <- basicTextGatherer()
-  accumulator$reset()
-  
-  curlPerform(url           = paste0("https://sg-n1.op.umcutrecht.nl/api/query/?project-id=", projectId),
-              httpheader    = c("Accept"        = "application/json",
-                                "Authorization" = "Basic ZGxhYnVzZXI6SEIzdlMkV3VAeXV0YndSTg==",
-                                "Cookie"        = paste0("SGSession=", token),
-                                "Content-Type"  = "application/sparql-update"),
-              customrequest = "POST",
-              postfields    = query,
-              writefunction = accumulator$update)
-  
-  jsonData    <- accumulator$value()
-  jsonData
-  data        <- fromJSON(jsonData)
-  
-  accumulator$reset()
-  return (data)
-}
-
-SPARQL_query_SNVs_sampleID <- function(mutType, sampleID,projectId,token, verbose = T){
-  # Check mut type
-  if (verbose){
-    message("Loading variants ...")
-  }
-  if (mutType != "SNV")
-    stop("this is a query to retrieve SNVs")
-  query <- sprintf(
-    "
-             PREFIX faldo:       <http://biohackathon.org/resource/faldo#>
-             PREFIX sg:          <https://sparqling-genomics.org/0.99.12/>
-             PREFIX vcf2rdf:     <sg://0.99.12/vcf2rdf/>
-             PREFIX variant:     <sg://0.99.12/vcf2rdf/variant/>
-             PREFIX info:        <sg://0.99.12/vcf2rdf/info/>
-             PREFIX seq:         <sg://0.99.12/vcf2rdf/sequence/>
-             
-             SELECT DISTINCT STRAFTER(STR(?chromosome), 'nuccore/') AS ?chromosome
-                             ?position
-                             STRAFTER(STR(?REF), STR(seq:)) AS ?REF
-                             STRAFTER(STR(?ALT), STR(seq:)) AS ?ALT
-                             ?TNC
-                             ?PURPLE_AF
-                             ?KT
-                             ?MH
-                             ?REPS
-                             ?REPC
-             
-             WHERE {
-               GRAPH <hartwig://purple-somatic-vcf> {
-              
-                 ?origin  sg:filename             ?filename .
-             
-                 ?sample  sg:foundIn              ?origin ;
-                          rdfs:label              ?sampleName .
-             
-                 ?variant sg:originatedFrom       ?origin ;
-                          faldo:reference         ?chromosome ;
-                          faldo:position          ?position ;
-                          variant:REF             ?REF ;
-                          variant:ALT             ?ALT ;
-                          variant:FILTER          vcf2rdf:PASS ;
-                          info:TNC                ?TNC ;
-                          info:PURPLE_AF          ?PURPLE_AF .
-                 OPTIONAL {
-                  GRAPH <hartwig://purple-somatic-vcf> {
-                    ?variant info:KT       ?opt_KT .
-                    BIND(COALESCE(?opt_KT, '-') AS ?KT)
-                  }
-                 }
-                 
-                 OPTIONAL {
-                  GRAPH <hartwig://purple-somatic-vcf> {
-                    ?variant info:MH       ?opt_MH .
-                    BIND(COALESCE(?opt_MH, '-') AS ?MH)
-                  }
-                }
-                
-                OPTIONAL {
-                  GRAPH <hartwig://purple-somatic-vcf> {
-                    ?variant info:REP_S       ?opt_REPS .
-                    BIND(COALESCE(?opt_REPS, '-') AS ?REPS)
-                  }
-                }
-                
-                 OPTIONAL {
-                  GRAPH <hartwig://purple-somatic-vcf> {
-                    ?variant info:REP_C       ?opt_REPC .
-                    BIND(COALESCE(?opt_REPC, '-') AS ?REPC)
-                  }
-                 }
-                
-               }
-             
-               FILTER (?sampleName = '%s'^^xsd:string)
-               FILTER (STRLEN(STRAFTER(STR(?ALT), STR(seq:))) = 1)
-               FILTER (STRLEN(STRAFTER(STR(?REF), STR(seq:))) = 1)
-             }
-  ",sampleID)
-  results <- SGSPARQL (projectId, token, query)
-  results <- unique(results) #remove duplicated mutations because of GT type in blood sample
-  return(results)
-}
+# SGSPARQL <- function (projectId, token, query, verbose = T){
+#   if (verbose){
+#     message("Connecting to server ...")
+#   }
+#   accumulator <- basicTextGatherer()
+#   accumulator$reset()
+#   
+#   curlPerform(url           = paste0("https://sg-n1.op.umcutrecht.nl/api/query/?project-id=", projectId),
+#               httpheader    = c("Accept"        = "application/json",
+#                                 "Authorization" = "...",
+#                                 "Cookie"        = paste0("SGSession=", token),
+#                                 "Content-Type"  = "application/sparql-update"),
+#               customrequest = "POST",
+#               postfields    = query,
+#               writefunction = accumulator$update)
+#   
+#   jsonData    <- accumulator$value()
+#   jsonData
+#   data        <- fromJSON(jsonData)
+#   
+#   accumulator$reset()
+#   return (data)
+# }
+# 
+# SPARQL_query_SNVs_sampleID <- function(mutType, sampleID,projectId,token, verbose = T){
+#   # Check mut type
+#   if (verbose){
+#     message("Loading variants ...")
+#   }
+#   if (mutType != "SNV")
+#     stop("this is a query to retrieve SNVs")
+#   query <- sprintf(
+#     "
+#              PREFIX faldo:       <http://biohackathon.org/resource/faldo#>
+#              PREFIX sg:          <https://sparqling-genomics.org/0.99.12/>
+#              PREFIX vcf2rdf:     <sg://0.99.12/vcf2rdf/>
+#              PREFIX variant:     <sg://0.99.12/vcf2rdf/variant/>
+#              PREFIX info:        <sg://0.99.12/vcf2rdf/info/>
+#              PREFIX seq:         <sg://0.99.12/vcf2rdf/sequence/>
+#              
+#              SELECT DISTINCT STRAFTER(STR(?chromosome), 'nuccore/') AS ?chromosome
+#                              ?position
+#                              STRAFTER(STR(?REF), STR(seq:)) AS ?REF
+#                              STRAFTER(STR(?ALT), STR(seq:)) AS ?ALT
+#                              ?TNC
+#                              ?PURPLE_AF
+#                              ?KT
+#                              ?MH
+#                              ?REPS
+#                              ?REPC
+#              
+#              WHERE {
+#                GRAPH <hartwig://purple-somatic-vcf> {
+#               
+#                  ?origin  sg:filename             ?filename .
+#              
+#                  ?sample  sg:foundIn              ?origin ;
+#                           rdfs:label              ?sampleName .
+#              
+#                  ?variant sg:originatedFrom       ?origin ;
+#                           faldo:reference         ?chromosome ;
+#                           faldo:position          ?position ;
+#                           variant:REF             ?REF ;
+#                           variant:ALT             ?ALT ;
+#                           variant:FILTER          vcf2rdf:PASS ;
+#                           info:TNC                ?TNC ;
+#                           info:PURPLE_AF          ?PURPLE_AF .
+#                  OPTIONAL {
+#                   GRAPH <hartwig://purple-somatic-vcf> {
+#                     ?variant info:KT       ?opt_KT .
+#                     BIND(COALESCE(?opt_KT, '-') AS ?KT)
+#                   }
+#                  }
+#                  
+#                  OPTIONAL {
+#                   GRAPH <hartwig://purple-somatic-vcf> {
+#                     ?variant info:MH       ?opt_MH .
+#                     BIND(COALESCE(?opt_MH, '-') AS ?MH)
+#                   }
+#                 }
+#                 
+#                 OPTIONAL {
+#                   GRAPH <hartwig://purple-somatic-vcf> {
+#                     ?variant info:REP_S       ?opt_REPS .
+#                     BIND(COALESCE(?opt_REPS, '-') AS ?REPS)
+#                   }
+#                 }
+#                 
+#                  OPTIONAL {
+#                   GRAPH <hartwig://purple-somatic-vcf> {
+#                     ?variant info:REP_C       ?opt_REPC .
+#                     BIND(COALESCE(?opt_REPC, '-') AS ?REPC)
+#                   }
+#                  }
+#                 
+#                }
+#              
+#                FILTER (?sampleName = '%s'^^xsd:string)
+#                FILTER (STRLEN(STRAFTER(STR(?ALT), STR(seq:))) = 1)
+#                FILTER (STRLEN(STRAFTER(STR(?REF), STR(seq:))) = 1)
+#              }
+#   ",sampleID)
+#   results <- SGSPARQL (projectId, token, query)
+#   results <- unique(results) #remove duplicated mutations because of GT type in blood sample
+#   return(results)
+# }
 
 
 # 2. Mutational signatures and their likelihoods ----------------------------------------------------------------------------------------------
